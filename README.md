@@ -10,7 +10,7 @@
 
 Infrastructure dependencies are not static configuration. They are live, generation-bound runtime relationships whose readiness, invalidation, and recovery must remain explicit as upstream state changes.
 
-Dependency Fabric sits **beside Workload Fabric and above lower-level state/artifact/resource runtimes.** It owns the *explicit dependency graph and its current authority/readiness semantics* - and nothing else. Adjacent boundaries are explicit:
+Dependency Fabric sits **beside [Workload Fabric](https://github.com/pngen/Workload-Fabric) and above lower-level state/artifact/resource runtimes.** It owns the *explicit dependency graph and its current authority/readiness semantics* - and nothing else. Adjacent boundaries are explicit:
 
 - **Workload Fabric** governs durable workload lifecycle.
 - **Execution Fabric** governs authoritative execution attempts and logical commit.
