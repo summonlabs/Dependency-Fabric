@@ -222,6 +222,10 @@ Outcome Graph::supersede_generation(DependencyNodeId id, DependencyNodeGeneratio
   if (!old_gen.valid() || !new_gen.valid()) return Outcome::REJECT_INVALID_TRANSITION;
   if (new_gen.value() <= old_gen.value()) return Outcome::REJECT_STALE_NODE_GENERATION;
   if (!n->has_generation(old_gen)) return Outcome::REJECT_STALE_NODE_GENERATION;
+  // The new generation becomes the authoritative one, so it must be newer than
+  // the current one even when a historical generation is the one superseded.
+  if (n->current_generation.valid() && new_gen.value() <= n->current_generation.value())
+    return Outcome::REJECT_STALE_NODE_GENERATION;
   if (n->highest_generation().value() == old_gen.value() &&
       n->current_generation.value() == old_gen.value()) {
     // Superseding the current authoritative generation moves it forward.
@@ -342,6 +346,8 @@ Outcome Graph::set_edge_active(DependencyEdgeId id, bool active, SourceId source
   Edge* e = find_edge_locked(id);
   if (!e) return Outcome::REJECT_UNKNOWN_DEPENDENCY;
   if (e->active == active) { std::vector<DependencyNodeId> roots{e->consumer_id}; recompute_closure_locked(roots); return Outcome::ACCEPTED; }
+  // Re-activating an edge is adding it back: it must not close a cycle.
+  if (active && would_create_cycle_locked(e->producer_id, e->consumer_id)) return Outcome::REJECT_CYCLE;
   e->active = active;
   if (active) {
     out_edges_[e->producer_id].push_back(id);
